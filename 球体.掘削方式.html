@@ -16,67 +16,109 @@
       body.operating * {
         user-select: none;
       }
-      #contents_frame {
-        display: grid;
-        grid-template-columns: auto auto 1fr;
-        grid-template-rows: auto auto auto;
+      #高次枠 {
+        display: flex;
+        justify-content: left;
+        gap: 1rem;
         margin: 1rem;
-        padding: 0;
       }
-      #radar_frame {
-        position: relative;
-        grid-column: 1;
-        grid-row: 1;
-        margin: 0 1rem 1rem 0;
-        width: var(--main-width);
-        height: var(--main-width);
-        border: solid 0.1rem #aaa;
-        /* opacity: 0.2; */
+      #高次枠 * {
+        box-sizing: border-box;
+      }
+      #主枠, #検証 {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
       }
       #radar {
-        position: absolute;
-      }
-      #test {
-        /* opacity: 0.5; */
-        grid-column: 1;
-        grid-row: 2;
+        width: calc(var(--main-width) + 0.2rem);
+        height: calc(var(--main-width) + 0.2rem);
         border: solid 0.1rem #aaa;
       }
-      #gauze {
+      #副枠 {
+        position: relative;
+        width: 0;
+      }
+      #副枠[data-展開="1"] {
+        animation: 展開 both 0.2s ease-out;
+      }
+      #副枠[data-展開="-1"] {
+        animation: 収納 both 0.2s ease-out;
+      }
+      @keyframes 展開 {
+        0% {
+          width: 0;
+        }
+        100% {
+          width: calc(var(--main-width) + 1.2rem);
+        }
+      }
+      @keyframes 収納 {
+        0% {
+          width: calc(var(--main-width) + 1.2rem);
+        }
+        100% {
+          width: 0;
+        }
+      }
+      #検証 {
+        width: 100%;
+        overflow: hidden;
+      }
+      #展開操作 {
         position: absolute;
         top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        cursor: default;
-        z-index: 1;
+        right: -3rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: solid 0.1rem #aaa;
+        border-radius: 0.4rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.6rem;
+        cursor: pointer;
       }
-      #form_frame {
-        /* display: none; */
-        grid-column: 2;
-        grid-row: 1 / 3;
-        margin: 0 0 auto;
+      #展開操作:hover {
+        background-color: #eef;
+      }
+      #test {
+        border: solid 0.1rem #aaa;
+      }
+      .操作枠 {
+        width: calc(var(--main-width) + 0.2rem);
         padding: 0.5rem;
         border: solid 0.1rem #aaa;
         font-size: 1.2rem;
-        width: 30rem;
       }
-      #form_frame form {
+      .操作枠 form {
         padding: 0;
       }
       .項目 {
         margin: 0 0 0.5rem 0;
-        padding: 0.5rem;
-        background-color: #eeeeff;
-        display: grid;
-        grid-template-columns: 25% 1fr;
+        background-color: #eef;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        height: 3.2rem;
+        padding: 0 0.5rem;
+      }
+      .項目 > *:first-child {
+        display: inline-block;
+        width: 25%;
+        margin-right: auto;
       }
       .項目:last-child {
         margin: 0;
       }
-      #setting_box {
-        display: grid;
-        grid-template-columns: 25% 1fr;
+      .項目 input[type="text"],
+      .項目 select,
+      .項目 button {
+        height: 2.4rem;
+        font-size: 1.2rem;
+      }
+      .項目 input[type="checkbox"] {
+        margin: 0 0.2rem 0 0;
       }
       #switch_box {
         display: flex;
@@ -103,45 +145,93 @@
         height: 2.6rem;
         border: solid 1px #aaaaff;
         background-color: #ffffff;
-        box-sizing: border-box;
         z-index: 2;
       }
       #meter_box.disable #handle {
         border: solid 1px #8888aa;
         background-color: #aaaaaa;
       }
+      #経過通知枠 {
+        width: calc(var(--main-width) + 0.2rem);
+        padding: 0.5rem;
+        border: solid 0.1rem #aaa;
+        font-size: 1.2rem;
+      }
+      #経過通知 {
+        text-align: right;
+      }
+      #達成通知 {
+        display: none;
+        position: absolute;
+        top: calc(50vh - 5rem);
+        left: calc(50vw - 15rem);
+        width: 30rem;
+        height: 10rem;
+        justify-content: center;
+        align-items: center;
+        border: solid 0.1rem #888;
+        border-radius: 1rem;
+        background-color: #fff8;
+        font-size: 2rem;
+      }
     </style>
   </head>
   <body>
-    <div id="contents_frame">
-      <div id="radar_frame">
+    <div id="高次枠">
+      <div id="主枠">
         <canvas id="radar"></canvas>
-        <div id="gauze"></div>
-      </div>
-      <div id="form_frame">
-        <form name="再生" action="" method="get">
-          <div id="setting_box" class="項目">
-            <div id="switch_box">
-              <input type="checkbox" name="distance" id="distance_switch" checked />
-              <label for="distance_switch">ズーム</label>
+        <div class="操作枠">
+          <form name="再生" action="" method="get">
+            <div class="項目">
+              <div id="switch_box">
+                <input type="checkbox" name="distance" id="distance_switch" checked />
+                <label for="distance_switch">ズーム</label>
+              </div>
+              <div id="meter_box">
+                <div id="handle"></div>
+              </div>
             </div>
-            <div id="meter_box">
-              <div id="handle"></div>
+            <div class="項目">
+              <span>面数</span>
+              <select name="面指定">
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="12">12</option>
+                <option value="20">20</option>
+              </select>
             </div>
-          </div>
+          </form>
+        </div>
+        <div id="経過通知枠">
           <div class="項目">
-            <span>面数</span>
-            <select name="面指定">
-              <option value="4">4</option>
-              <option value="6">6</option>
-              <option value="8">8</option>
-              <option value="12">12</option>
-              <option value="20">20</option>
-            </select>
+            <span>経過時間</span>
+            <span id="経過通知">00:00</span>
           </div>
-        </form>
+        </div>
       </div>
-      <canvas id="test"></canvas>
+      <div id="副枠" data-展開="0">
+        <div id="展開操作">≫</div>
+        <div id="検証">
+          <canvas id="test"></canvas>
+          <div class="操作枠">
+            <form name="検証" action="" method="get">
+              <div class="項目">
+                <span>状態確認</span>
+                <span>
+                  <select name="面確認"></select>
+                  <input type="text" name="面確認時点" />
+                  <button type="button" name="面確認実行">確認</button>
+                </span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div id="達成通知">
+        <div></div>
+        良かったです！
+      </div>
     </div>
     <script>
       const 隔壁高 = 10;
@@ -153,17 +243,15 @@
       const 軸走査限界半径 = 170;
       const 最小画角度 = (5 / 180) * Math.PI;
       const 最大画角度 = (20 / 180) * Math.PI;
-      const frameElem = document.getElementById('radar_frame');
       const 描画実体 = document.getElementById('radar');
       const 描画制御 = 描画実体.getContext('2d');
-      const gauzeElem = document.getElementById('gauze');
+      const 経過通知実体 = document.getElementById('経過通知');
+      const 副枠実体 = document.getElementById('副枠');
+      const 展開操作 = document.getElementById('展開操作');
       const checkElem = document.再生.distance;
       const selectElem = document.再生.parameter_type;
       const meterBoxElem = document.getElementById('meter_box');
       const meterHandleElem = document.getElementById('handle');
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-      const rect = frameElem.getBoundingClientRect();
       const meterBoxStyle = window.getComputedStyle(meterBoxElem, '');
       const meterBoxWidth = parseInt(meterBoxStyle.width.replace('px', ''));
       const meterHandleStyle = window.getComputedStyle(meterHandleElem, '');
@@ -308,11 +396,12 @@
       let 基準Z = 0;
       let moveType = 'vector';
       let 転回信号 = false;
-      let animation = null;
-      let animationSwitch = false;
-      let animationStartSwitch = false;
-      let animationTimeout = null;
+      let 再生巡回 = null;
+      let 再生巡回指示 = false;
+      let 再生巡回開始指示 = false;
+      let 再生停止監視 = null;
       let 探索指示 = [0, 0];
+      let 計測巡回 = null;
       let latestBaseX = 0;
       let latestBaseY = 0;
       let latestMoveX = 0;
@@ -336,12 +425,14 @@
       let 移動履歴 = [[0, 0, 0, 0.5, 0.5]];
       let 現在座標 = [];
       let 目的面 = 0;
+      let 開始時刻 = 0;
       let radarCoordinates = {};
       let distanceSwitch = true;
       let meterChangeSwitch = false;
       let 焦点距離 = distanceSwitch && 1 / Math.sin(画角度);
       let meterPosition = 0;
       let mousePosition = 0;
+      let 達成判定 = false;
       const 迷路座標群 = [];
       const 隔壁平面群 = [];
       const 通路平面群 = [];
@@ -1997,31 +2088,8 @@ return;
                   }
                 })(通路平面群[m][code].通過)
                 : [255, 255, 255];
-// const FC = partType === 'wall' ? [112, 112, 156] : partType === 'road' ? [200, 200, 236] : [
-// [255, 100, 200],
-// [100, 255, 200],
-// [140, 140, 255],
-// [255, 150, 150],
-// [140, 200, 100],
-// [100, 160, 180],
-// [220, 100, 150],
-// [100, 220, 120],
-// [200, 100, 100],
-// [170, 170, 170],
-// [180, 100, 220],
-// [255, 160, 152],
-// [255, 224, 128],
-// [156, 200, 160],
-// [224, 128, 200],
-// [112, 240, 128],
-// [192, 160, 172],
-// [120, 240, 160],
-// [184, 160, 128],
-// [140, 160, 255],
-// ][m];
             描画制御.fillStyle = calculateColor(FC, V / Math.PI);
             描画制御.strokeStyle = calculateColor(FC, V / Math.PI);
-            // 描画制御.strokeStyle = '#88f';
             描画制御.fill();
             描画制御.stroke();
           }
@@ -2046,11 +2114,11 @@ return;
         }
         方向転換();
         描画();
-        if (animationSwitch) {
-          if (animation) {
-            clearTimeout(animation);
+        if (再生巡回指示) {
+          if (再生巡回) {
+            clearTimeout(再生巡回);
           }
-          animation = setTimeout(再生, 50);
+          再生巡回 = setTimeout(再生, 50);
         }
       };
 
@@ -2183,6 +2251,10 @@ return;
                 通路平面群[面][記号].通過 = 通過判定 ? (通過値 | 通過加算値) : (通過値 - (通過値 & 通過加算値));
               });
             });
+            if (!達成判定 && 面 === 目的面 && 列 === 0 && 履歴情報[4] < 値2) {
+              達成判定 = true;
+              document.getElementById('達成通知').style.display = 'flex';
+            }
           } else {
             const 距離分岐点 = (値2 - 値1) / 総距離;
             const 連絡口通過判定 = 始端 <= 1 - 距離分岐点 && 終端 >= 距離分岐点;
@@ -2282,42 +2354,52 @@ return;
         }
       };
 
-      const startAnimation = () => {
-        animationSwitch = true;
+      const 再生開始 = () => {
+        再生巡回指示 = true;
         再生();
       };
 
-      const stopAnimation = () => {
-        if (animation) {
-          clearTimeout(animation);
+      const 再生停止 = () => {
+        if (再生巡回) {
+          clearTimeout(再生巡回);
         }
-        animationSwitch = false;
-        animationStartSwitch = false;
+        再生巡回指示 = false;
+        再生巡回開始指示 = false;
       };
 
       const moveStopCheck = (clientX, clientY) => {
-        animationStartSwitch = latestMoveX !== clientX || latestMoveY !== clientY;
+        再生巡回開始指示 = latestMoveX !== clientX || latestMoveY !== clientY;
       };
 
-      gauzeElem.addEventListener('mousedown', (event) => {
+      描画実体.addEventListener('mousedown', (event) => {
         探索指示 = [0, 0];
-        stopAnimation();
+        再生停止();
         転回信号 = true;
         resetAxis(event.clientX, event.clientY);
         document.body.classList.add('operating');
       });
 
-      gauzeElem.addEventListener('mousemove', (event) => {
+      描画実体.addEventListener('mousemove', (event) => {
         if (転回信号) {
           setAxis(event.clientX, event.clientY);
-          animationStartSwitch = true;
-          clearTimeout(animationTimeout);
-          animationTimeout = setTimeout(() => {
+          再生巡回開始指示 = true;
+          clearTimeout(再生停止監視);
+          再生停止監視 = setTimeout(() => {
             moveStopCheck(event.clientX, event.clientY);
           }, 100);
           再生();
         }
       });
+
+      const 計測 = () => {
+        const 経過時間 = Math.floor(Date.now() / 1000) - 開始時刻;
+        const 経過分数 = Math.floor(経過時間 / 60);
+        const 経過秒数 = 経過時間 % 60;
+        経過通知実体.innerText = `${経過分数 < 10 ? 0 : ''}${経過分数}:${経過秒数 < 10 ? 0 : ''}${経過秒数}`;
+        if (!達成判定) {
+          計測巡回 = setTimeout(計測, 250);
+        }
+      };
 
       const 設定 = () => {
         通路列数 = 通路列数群[面数];
@@ -2358,6 +2440,12 @@ return;
         通路臨界位置群 = Array(通路列数).fill(null).map((_1, 列) => 隔壁臨界位置取得(列 - 0.5, -1));
         移動履歴 = [[0, 0, 0, 0.5, 0.5]];
         目的面 = 1 + Math.floor(Math.random() * (面数 - 1));
+        開始時刻 = 0;
+        if (計測巡回) {
+          clearTimeout(計測巡回);
+          計測巡回 = null;
+          経過通知実体.innerText = '00:00';
+        }
         進行();
       };
 
@@ -2397,11 +2485,15 @@ return;
               探索制御設定[key].forEach((値, 項) => {
                 探索指示[項] += 値;
               });
-              animationSwitch = true;
-              if (animation) {
-                clearTimeout(animation);
+              再生巡回指示 = true;
+              if (再生巡回) {
+                clearTimeout(再生巡回);
               }
-              animation = setTimeout(再生, 50);
+              再生巡回 = setTimeout(再生, 50);
+            }
+            if (!計測巡回) {
+              開始時刻 = Math.floor(Date.now() / 1000);
+              計測巡回 = setTimeout(計測, 250);
             }
             break;
 
@@ -2422,9 +2514,9 @@ return;
               探索指示[項] -= 値;
             });
             if (!(探索指示[0] || 探索指示[1])) {
-              animationSwitch = false;
-              if (animation) {
-                clearTimeout(animation);
+              再生巡回指示 = false;
+              if (再生巡回) {
+                clearTimeout(再生巡回);
               }
             }
             break;
@@ -2438,7 +2530,7 @@ return;
         } else {
           meterBoxElem.classList.add('disable');
         }
-        if (!animationSwitch) {
+        if (!再生巡回指示) {
           再生();
         }
       });
@@ -2479,7 +2571,7 @@ return;
         画角度 = (最大画角度 - 最小画角度) * percentage + 最小画角度;
         視角拡大率 = Math.tan(画角度);
         meterHandleElem.style.left = `${meterPosition - minPosition}px`;
-        if (!animationSwitch) {
+        if (!再生巡回指示) {
           再生();
         }
       });
@@ -2491,8 +2583,8 @@ return;
           転回信号 = false;
           setAxis(event.clientX, event.clientY);
         }
-        if (animationStartSwitch) {
-          startAnimation();
+        if (再生巡回開始指示) {
+          再生開始();
         }
       });
 
@@ -2594,8 +2686,8 @@ return;
       const cc = ce.getContext('2d');
       ce.width = 画面幅;
       ce.height = 画面幅;
-      ce.style.width = 'var(--main-width)';
-      ce.style.height = 'var(--main-width)';
+      ce.style.width = 'calc(var(--main-width) + 0.2rem)';
+      ce.style.height = 'calc(var(--main-width) + 0.2rem)';
       描画制御.lineWidth = 0.2;
       const sc = (...指示) => {
         const[再現番号, 面] = [
@@ -2756,17 +2848,33 @@ return;
         });
       };
 
+      展開操作.onclick = () => {
+        const 展開状態 = parseInt(副枠実体.dataset.展開);
+        副枠実体.dataset.展開 = 展開状態 < 1 ? 1 : -1;
+      };
+      副枠実体.onanimationend = () => {
+        const 展開状態 = parseInt(副枠実体.dataset.展開);
+        展開操作.innerText = 展開状態 < 1 ? '≫' : '≪';
+      };
+      document.検証.面確認実行.onclick = () => {
+        sc(parseInt(document.検証.面確認時点.value), parseInt(document.検証.面確認.value));
+      };
+
       // ▼検査用▼
 
       // 検査 = 'z';
+      // 目的面 = 3;
       // 移動履歴 = [];
-
 
       // ▲検査用▲
 
       描画実体.setAttribute('width', `${画面幅}px`);
       描画実体.setAttribute('height', `${画面幅}px`);
       描画制御.lineWidth = 0.2;
+
+      Array(20).fill(null).forEach((_, 面) => {
+        document.検証.面確認.appendChild(document.createElement('option', { value: 面 })).appendChild(document.createTextNode(面));
+      });
 
       if (!検査) {
         設定();
