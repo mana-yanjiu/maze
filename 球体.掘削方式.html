@@ -65,10 +65,7 @@
         width: 100%;
         overflow: hidden;
       }
-      #展開操作 {
-        position: absolute;
-        top: 0;
-        right: -3rem;
+      .操作 {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -79,8 +76,13 @@
         font-size: 1.6rem;
         cursor: pointer;
       }
-      #展開操作:hover {
+      .操作:hover {
         background-color: #eef;
+      }
+      #展開操作 {
+        position: absolute;
+        top: 0;
+        right: -3rem;
       }
       #test {
         border: solid 0.1rem #aaa;
@@ -151,6 +153,42 @@
         border: solid 1px #8888aa;
         background-color: #aaaaaa;
       }
+      .案内 {
+        position: relative;
+        border: solid 0.1rem #888;
+        border-radius: 1rem;
+        background-color: #fffc;
+        z-index: 100;
+      }
+      .隠蔽 {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4rem;
+        height: 4rem;
+        cursor: pointer;
+      }
+      .隠蔽::before,
+      .隠蔽::after {
+        content: "";
+        position: absolute;
+        top: 0.8rem;
+        right: 2rem;
+        display: block;
+        width: 0.2rem;
+        height: 2.4rem;
+        background-color: #000;
+      }
+      .隠蔽:hover::before,
+      .隠蔽:hover::after {
+        background-color: #666;
+      }
+      .隠蔽::before {
+        transform: rotate(45deg);
+      }
+      .隠蔽::after {
+        transform: rotate(-45deg);
+      }
       #経過通知枠 {
         width: calc(var(--main-width) + 0.2rem);
         padding: 0.5rem;
@@ -160,19 +198,38 @@
       #経過通知 {
         text-align: right;
       }
-      #達成通知 {
-        display: none;
+      #達成通知[data-隠蔽="0"] {
         position: absolute;
         top: calc(50vh - 5rem);
         left: calc(50vw - 15rem);
-        width: 30rem;
-        height: 10rem;
+        display: flex;
         justify-content: center;
         align-items: center;
-        border: solid 0.1rem #888;
-        border-radius: 1rem;
-        background-color: #fff8;
+        width: 30rem;
+        height: 10rem;
         font-size: 2rem;
+      }
+      #解説[data-隠蔽="0"] {
+        position: absolute;
+        top: 10rem;
+        left: calc(50vw - 30rem);
+        width: 60rem;
+        padding: 2rem;
+        font-size: 1.2rem;
+      }
+      #解説 h2 {
+        margin: 0 0 1.6rem;
+        line-height: 1;
+        text-align: center;
+        font-size: 1.6rem;
+        font-weight: normal;
+      }
+      #解説 div {
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+      }
+      div[data-隠蔽="1"] {
+        display: none;
       }
     </style>
   </head>
@@ -209,9 +266,10 @@
             <span id="経過通知">00:00</span>
           </div>
         </div>
+        <div id="解説操作" class="操作">？</div>
       </div>
       <div id="副枠" data-展開="0">
-        <div id="展開操作">≫</div>
+        <div id="展開操作" class="操作">≫</div>
         <div id="検証">
           <canvas id="test"></canvas>
           <div class="操作枠">
@@ -228,9 +286,21 @@
           </div>
         </div>
       </div>
-      <div id="達成通知">
-        <div></div>
+      <div id="達成通知" data-隠蔽="1" class="案内">
+        <div class="隠蔽"></div>
         良かったです！
+      </div>
+      <div id="解説" data-隠蔽="1" class="案内">
+        <div class="隠蔽"></div>
+        <h2>概要</h2>
+        <div>
+          <span>1)</span><span>プレイヤーは、画面上の球体に構成された迷路（以下甲）を辿り、開始地点から目的地点への到達を目指すものとします。</span>
+          <span>2)</span><span>甲上の開始地点・目的地点は其々撫子色・青色で示し、また現在地点（以下乙）は赤色の線で構成された円で示すものとします。</span>
+          <span>3)</span><span>乙はカーソル操作によって甲内を可能な限り進行するものとします。その際、進行方向はプレイヤー視点からの甲の向きに応じて判定されます。</span>
+          <span>4)</span><span>甲の向きはマウス（以下丙）操作によって変更可能なものとします。甲の表示枠内で丙ボタンを押下後、押下解除まで任意方向に丙を移動させることで甲の向きを変換することができます。</span>
+          <span>5)</span><span>ゲーム開始からの経過時間は、画面下部の領域にて確認可能なものとします。ゲーム開始の判定は、初期状態乃至面数変更後の初回カーソル操作によってなされるものとします。なお、経過時間によるゲーム進行への影響はありません。</span>
+          <span>6)</span><span>乙が目的地点に到達した際は、画面上に簡単なねぎらいの文章を表示し、その成果を称賛するものとします。</span>
+        </div>
       </div>
     </div>
     <script>
@@ -433,6 +503,9 @@
       let meterPosition = 0;
       let mousePosition = 0;
       let 達成判定 = false;
+      let re = [];
+      let iz = [];
+      let 検査 = false;
       const 迷路座標群 = [];
       const 隔壁平面群 = [];
       const 通路平面群 = [];
@@ -1159,77 +1232,6 @@
 
         面連結(内部参照情報);
       };
-
-let re = [];
-let iz = [];
-let 検査 = false;
-const rea = () => {
-  const TS = 通路群.map((MTS) => MTS.map((LTS) => LTS.map((T) => [
-    { 通路: 0, 隔壁: 1 }[T.種別],
-    T.管轄 || 0,
-    (T.末端情報[0] ? 1 : 0) + (T.末端情報[1] ? 2 : 0),
-    T.位置[0][0].方向 + T.位置[0][0].進捗,
-    T.位置[1][0].方向 + T.位置[1][0].進捗,
-  ])));
-  const LS = 連絡口群.map((MLS) => MLS.map((LLS, LT) => LLS.map(
-    (L) => ((A) => A.方向 + A.進捗)(LT < 通路列数 - 1 ? L[0][0] : L[0])
-  )));
-  拡張可能通路群.forEach((T) => {
-    TS[T.面][T.列].find((ATK) => T.位置[0][0].方向 + T.位置[0][0].進捗 === ATK[3]).push(1);
-  });
-
-  re[re.length - 1].push(JSON.stringify([TS, LS, 管轄群]));
-};
-const kt = (AZH) => {
-  const [TS, LS, KS] = AZH;
-  面数 = TS.length;
-  設定();
-  TS.forEach((MTS, 面) => {
-    通路群[面] = [];
-    連絡口群[面] = [];
-    MTS.forEach((LTS, 列) => {
-      通路群[面][列] = LTS.map((T) => {
-        const 種別 = ['通路', '隔壁'][T[0]];
-        const 方向1 = Math.floor(T[3]);
-        const 進捗1 = T[3] - 方向1;
-        const 方向2 = T[0] || Math.floor(T[4]);
-        const 進捗2 = T[0] || T[4] - 方向2;
-        const 位置 = T[0]
-          ? 隣接隔壁情報取得('隔壁', 列, 方向1, 進捗1, 1, 0)
-          : 列
-            ? [
-              (([ZH]) => ZH.map(({ 方向, 進捗 }) => ({ 方向, 進捗 })))(隣接通路情報取得(列, 方向1, 進捗1, 1, 0)),
-              (([ZH]) => ZH.map(({ 方向, 進捗 }) => ({ 方向, 進捗 })))(隣接通路情報取得(列, 方向2, 進捗2, 0, 0)),
-            ]
-            : [
-              [{ 方向: 方向1, 進捗: 進捗1 }, { 方向: 方向1, 進捗: 進捗1 }],
-              [{ 方向: 方向2, 進捗: 進捗2 }, { 方向: 方向2, 進捗: 進捗2 }],
-            ];
-        const TT = { 面, 列, 種別, 管轄: T[1], 末端情報: [T[2] & 1, T[2] & 2], 位置 };
-        if (!T[0] && T[5]) {
-          拡張可能通路群.push(TT);          
-        }
-
-        return TT;
-      });
-    });
-  });
-  LS.forEach((MLS, 面) => {
-    MLS.forEach((LLS, 列) => {
-      連絡口群[面][列] = LLS.map((L) => {
-        const 方向 = Math.floor(L);
-        const 進捗 = L - 方向;
-
-        return 列 < 通路列数 - 1
-          ? 隣接隔壁情報取得('連絡口', 列, 方向, 進捗, 1, 0)
-          : ((ZH) => ZH[0])(隣接外端連絡口情報取得(面, 方向, 進捗, 1))
-      });
-    });
-  });
-  KS.forEach((K) => {
-    管轄群.push(K);
-  });
-};
 
       const 拡張 = (拡張情報) => {
         const [面, 列, 拡張通路, 拡張通路番号, 通路番号, 拡張可能壁群, 拡張方面] = 拡張情報
@@ -2002,11 +2004,11 @@ const kt = (AZH) => {
 
                 平面群[surfaceCode].forEach((posCode) => {
                   if (!一時座標群[posCode]) {
-if (!radarCoordinates[posCode]) {
-// console.log(`${surfaceCode} >> ${posCode}`);
-一時座標群[posCode] = { X: 0, Y: 0, Z: 0 };
-return;
-}
+                    if (!radarCoordinates[posCode]) {
+                      // console.log(`${surfaceCode} >> ${posCode}`);
+                      一時座標群[posCode] = { X: 0, Y: 0, Z: 0 };
+                      return;
+                    }
                     一時座標群[posCode] = posCode === 'O' ? { X: 0, Y: 0, Z: 0 } : 座標計算(radarCoordinates[posCode]);
                   }
 
@@ -2054,12 +2056,6 @@ return;
             return [{ X: 0, Y: 0, Z: 0 }, 座標総合];
           })();
           if (['C', 'Z', 'S', 'Y'].includes(partType)) {
-          //   const { X, Y } = 一時座標群.C;
-          //   描画制御.beginPath();
-          //   描画制御.fillStyle = '#ff000088';
-          //   描画制御.arc(中心 + X, 中心 + Y, 10, 0, Math.PI * 2);
-          //   描画制御.fill();
-
             return;
           }
           if (meshPos.Z >= basePos.Z) {
@@ -2253,7 +2249,7 @@ return;
             });
             if (!達成判定 && 面 === 目的面 && 列 === 0 && 履歴情報[4] < 値2) {
               達成判定 = true;
-              document.getElementById('達成通知').style.display = 'flex';
+              document.getElementById('達成通知').dataset.隠蔽 = "0";
             }
           } else {
             const 距離分岐点 = (値2 - 値1) / 総距離;
@@ -2595,17 +2591,82 @@ return;
         構築();
       };
 
+      const rea = () => {
+        const TS = 通路群.map((MTS) => MTS.map((LTS) => LTS.map((T) => [
+          { 通路: 0, 隔壁: 1 }[T.種別],
+          T.管轄 || 0,
+          (T.末端情報[0] ? 1 : 0) + (T.末端情報[1] ? 2 : 0),
+          T.位置[0][0].方向 + T.位置[0][0].進捗,
+          T.位置[1][0].方向 + T.位置[1][0].進捗,
+        ])));
+        const LS = 連絡口群.map((MLS) => MLS.map((LLS, LT) => LLS.map(
+          (L) => ((A) => A.方向 + A.進捗)(LT < 通路列数 - 1 ? L[0][0] : L[0])
+        )));
+        拡張可能通路群.forEach((T) => {
+          TS[T.面][T.列].find((ATK) => T.位置[0][0].方向 + T.位置[0][0].進捗 === ATK[3]).push(1);
+        });
+
+        re[re.length - 1].push(JSON.stringify([TS, LS, 管轄群]));
+      };
+
+      const kt = (AZH) => {
+        const [TS, LS, KS] = AZH;
+        面数 = TS.length;
+        設定();
+        TS.forEach((MTS, 面) => {
+          通路群[面] = [];
+          連絡口群[面] = [];
+          MTS.forEach((LTS, 列) => {
+            通路群[面][列] = LTS.map((T) => {
+              const 種別 = ['通路', '隔壁'][T[0]];
+              const 方向1 = Math.floor(T[3]);
+              const 進捗1 = T[3] - 方向1;
+              const 方向2 = T[0] || Math.floor(T[4]);
+              const 進捗2 = T[0] || T[4] - 方向2;
+              const 位置 = T[0]
+                ? 隣接隔壁情報取得('隔壁', 列, 方向1, 進捗1, 1, 0)
+                : 列
+                  ? [
+                    (([ZH]) => ZH.map(({ 方向, 進捗 }) => ({ 方向, 進捗 })))(隣接通路情報取得(列, 方向1, 進捗1, 1, 0)),
+                    (([ZH]) => ZH.map(({ 方向, 進捗 }) => ({ 方向, 進捗 })))(隣接通路情報取得(列, 方向2, 進捗2, 0, 0)),
+                  ]
+                  : [
+                    [{ 方向: 方向1, 進捗: 進捗1 }, { 方向: 方向1, 進捗: 進捗1 }],
+                    [{ 方向: 方向2, 進捗: 進捗2 }, { 方向: 方向2, 進捗: 進捗2 }],
+                  ];
+              const TT = { 面, 列, 種別, 管轄: T[1], 末端情報: [T[2] & 1, T[2] & 2], 位置 };
+              if (!T[0] && T[5]) {
+                拡張可能通路群.push(TT);          
+              }
+
+              return TT;
+            });
+          });
+        });
+        LS.forEach((MLS, 面) => {
+          MLS.forEach((LLS, 列) => {
+            連絡口群[面][列] = LLS.map((L) => {
+              const 方向 = Math.floor(L);
+              const 進捗 = L - 方向;
+
+              return 列 < 通路列数 - 1
+                ? 隣接隔壁情報取得('連絡口', 列, 方向, 進捗, 1, 0)
+                : ((ZH) => ZH[0])(隣接外端連絡口情報取得(面, 方向, 進捗, 1))
+            });
+          });
+        });
+        KS.forEach((K) => {
+          管轄群.push(K);
+        });
+      };
+
       const kk = (M, L, B, NG = null) => {
         const T = 通路群[M]?.[L]?.[B];
         if (T) {
           const NGS = 拡張可能壁群取得(T);
           ['内端', '外端'].forEach((NGH, NGK) => {
             if (NG === null || NG === NGK) {
-              NGS[NGH].forEach((ZGS) => {
-                ZGS.forEach(({ 方向, 進捗 }, ZG) => {
-                  ZGS[ZG] = { 方向, 進捗 };
-                });
-              });
+              NGS[NGH] = NGS[NGH].map((ZGS) => ZGS.map(({ 方向, 進捗 }) => ({ 方向, 進捗 })));
             }
           });
 
@@ -2614,6 +2675,7 @@ return;
 
         return 'N';
       };
+
       const k = (S, M, I = null, N = '0ff', H = 0.2) => {
         M = M ?? parseInt(S.replace(/_.*/, ''));
         const [平面群名称, 平面群] = [
@@ -2650,6 +2712,7 @@ return;
         描画制御.stroke();
         return 座標群[C] || 'N';
       };
+
       const kc = (S, M, I = null, N = '0ff', H = 0.2) => {
         M = M ?? parseInt(S.replace(/_.*/, ''));
         const [平面群名称, 平面群] = [
@@ -2663,6 +2726,7 @@ return;
           console.log(C);
         });
       };
+
       const s = (再現番号) => {
         if (re[再現番号]) {
           const 過去状態 = JSON.parse(re[再現番号][1]);
@@ -2675,6 +2739,7 @@ return;
           再生();
         }
       };
+
       const d = (再現番号) => {
         if (re[再現番号]) {
           const J = `kt(${re[再現番号][1]});`;
@@ -2682,6 +2747,7 @@ return;
           console.log(J + K);
         }
       };
+
       const ce = document.getElementById('test');
       const cc = ce.getContext('2d');
       ce.width = 画面幅;
@@ -2859,6 +2925,17 @@ return;
       document.検証.面確認実行.onclick = () => {
         sc(parseInt(document.検証.面確認時点.value), parseInt(document.検証.面確認.value));
       };
+      document.getElementById('解説操作').onclick = () =>
+        ((解説実体) => {
+          const 常時状態 = parseInt(解説実体.dataset.隠蔽);
+          解説実体.dataset.隠蔽 = (1 - 常時状態).toString();
+        })(document.getElementById('解説'));
+        document.querySelectorAll('.隠蔽').forEach((要素) => {
+          要素.onclick = (現象) => {
+            現象.target.parentElement.dataset.隠蔽 = "1";
+          };
+        });
+
 
       // ▼検査用▼
 
